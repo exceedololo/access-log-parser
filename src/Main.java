@@ -1,4 +1,6 @@
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -34,24 +36,57 @@ public class Main {
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 String line;
                 int countStrings = 0;
-                int longestString = 0;
-                int shortestString = Integer.MAX_VALUE;
+                int googleBots = 0;
+                int yandexBots = 0;
+                //List<Integer> googleBotLines =   new ArrayList<>();
+
                 while ((line = bufferedReader.readLine()) != null){
+                    countStrings++;
                     int length = line.length();
                     if(length > 1024){
                         throw new StringLengthException("Строка больше 1024 символов");
                     }
-                    countStrings++;
-                    if (length > longestString){
-                        longestString = length;
+
+                    int lastQuote = line.lastIndexOf('"');
+                    int lastQuote_1 = line.lastIndexOf('"', lastQuote - 1);
+                    if(lastQuote == -1 || lastQuote_1 == -1){
+                        continue;
                     }
-                    if (length < shortestString){
-                        shortestString = length;
+
+                    String userAgent = line.substring(lastQuote_1 + 1, lastQuote);
+
+                    int index = 0;
+                    while(true) {
+                        int start = userAgent.indexOf('(', index);
+                        if (start == -1)break;
+                        int end = userAgent.indexOf(')',start);
+                        if (end == -1)break;
+
+                            String firstBrackets = userAgent.substring(start + 1, end);
+                            String[] parts = firstBrackets.split(";");
+                            for (int i = 0; i < parts.length; i++) {
+                                parts[i] = parts[i].trim();
+                            }
+                            for (String fragment : parts) {
+                                String[] fragments = fragment.split("/");
+                                String bot = fragments[0].trim();
+                                if (bot.equalsIgnoreCase("Googlebot")) {
+                                    googleBots++;
+                                    //googleBotLines.add(countStrings);
+                                } else if (bot.equals("YandexBot")) {
+                                    yandexBots++;
+                                }
+                            }
+                            index = end+1;
                     }
+
                 }
                 System.out.println("Общее количество строк: " + countStrings);
-                System.out.println("Длина самой длинной строки: " + longestString);
-                System.out.println("Длина самой короткой строки: " + shortestString);
+                //System.out.println(googleBots);
+                System.out.println("Доля запросов Гугл-ботов: " + (double)googleBots/countStrings);
+                //System.out.println(" строки гугла : " + googleBotLines  );
+                //System.out.println(yandexBots);
+                System.out.println("Доля запросов Яндекс-ботов: " + (double)yandexBots/countStrings);
                 break;
             }catch (Exception ex) {
                 ex.printStackTrace();
@@ -62,20 +97,3 @@ public class Main {
     }
 }
 
-class StringLengthException extends RuntimeException{
-    public StringLengthException() {
-        super();
-    }
-    public StringLengthException(String message){
-        super(message);
-    }
-    public StringLengthException(String message,Throwable cause){
-        super(message,cause);
-    }
-    public StringLengthException(Throwable cause){
-        super(cause);
-    }
-    public  StringLengthException(String message,Throwable cause,boolean enableSuppression,boolean writableStackTrace){
-        super(message,cause,enableSuppression,writableStackTrace);
-    }
-}

@@ -38,6 +38,8 @@ public class Main {
                 int countStrings = 0;
                 int googleBots = 0;
                 int yandexBots = 0;
+                Statistics stats = new Statistics();
+                boolean firstLinePrinted = false;
                 //List<Integer> googleBotLines =   new ArrayList<>();
 
                 while ((line = bufferedReader.readLine()) != null){
@@ -45,6 +47,19 @@ public class Main {
                     int length = line.length();
                     if(length > 1024){
                         throw new StringLengthException("Строка больше 1024 символов");
+                    }
+                    LogEntry entry;
+                    try{
+                        entry = new LogEntry(line);
+                    }catch(Exception e){
+                        continue;
+                    }
+
+                    stats.addEntry(entry);
+                    if(!firstLinePrinted){
+                        System.out.println("Пример распаршенной строки:");
+                        System.out.println(entry);
+                        firstLinePrinted = true;
                     }
 
                     int lastQuote = line.lastIndexOf('"');
@@ -54,6 +69,7 @@ public class Main {
                     }
 
                     String userAgent = line.substring(lastQuote_1 + 1, lastQuote);
+                    UserAgent ua = entry.getUserAgent();
 
                     int index = 0;
                     while(true) {
@@ -87,6 +103,7 @@ public class Main {
                 //System.out.println(" строки гугла : " + googleBotLines  );
                 //System.out.println(yandexBots);
                 System.out.println("Доля запросов Яндекс-ботов: " + (double)yandexBots/countStrings);
+                System.out.println("Средний траффик за час: " + stats.getTrafficRate());
                 break;
             }catch (Exception ex) {
                 ex.printStackTrace();

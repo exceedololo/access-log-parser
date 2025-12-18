@@ -13,6 +13,10 @@ public class Statistics {
     HashSet<String> unexistingWebSites = new HashSet<>();
     HashMap<String,Integer> osFrequencies = new HashMap<>();
     HashMap<String, Integer> browserFrequencies = new HashMap<>();
+    int notBotVisits;
+    int mistakeRequests;
+    HashSet<String> nonBotIPs = new HashSet<>();
+
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
 
@@ -20,7 +24,40 @@ public class Statistics {
         this.totalTraffic = 0;
         this.minTime = null;
         this.maxTime = null;
+        this.notBotVisits = 0;
 
+    }
+
+    private long getHours(){
+        if (minTime == null ||  maxTime == null){
+            return 0;
+        }
+        return java.time.Duration.between(minTime,maxTime).toHours();
+    }
+
+    public double getAverageMistakesPerHour(){
+
+        long hours = getHours();
+        if(hours == 0){
+            return mistakeRequests;
+        }
+        return (double) mistakeRequests/hours;
+    }
+
+    public double getAverageVisitation(){
+
+        long hours = getHours();
+        if(hours == 0){
+            return notBotVisits;
+        }
+        return (double)notBotVisits/hours;
+    }
+
+    public double getAverageVisitsByIP(){
+        if(nonBotIPs.isEmpty()){
+            return 0;
+        }
+        return (double)notBotVisits/nonBotIPs.size();
     }
 
     public void addEntry(LogEntry entry){
@@ -31,6 +68,12 @@ public class Statistics {
         }
         if (entry.getResponse() == 404){
             unexistingWebSites.add(entry.getUrl());
+        }
+
+        UserAgent userAgent = entry.getUserAgent();
+        if (!userAgent.isBot()){
+            notBotVisits++;
+            nonBotIPs.add(entry.getIp());
         }
 
         OffsetDateTime offsetDateTime = OffsetDateTime.parse(entry.getDateTime(), formatter);
@@ -54,6 +97,9 @@ public class Statistics {
             browserFrequencies.put(browser, 1);
         }else {
             browserFrequencies.put(browser, browserFrequencies.get(browser) + 1);
+        }
+        if(entry.getResponse() >= 400 &&  entry.getResponse() < 600){
+            mistakeRequests++;
         }
     }
 

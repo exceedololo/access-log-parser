@@ -2,15 +2,9 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
+//C:\\Users\AlAZHdanov\Desktop\access.log
 public class Main {
     public static void main(String[] args) throws IOException {
-        //System.out.println("Введите текст и нажмите <Enter>:");
-        //String text = new Scanner(System.in).nextLine();
-        //System.out.println("Длина текста: " + text.length());
-
-
-
         //задание по теме "Циклы"
         int count = 0;
         while (true) {
@@ -40,7 +34,6 @@ public class Main {
                 int yandexBots = 0;
                 Statistics stats = new Statistics();
                 boolean firstLinePrinted = false;
-                //List<Integer> googleBotLines =   new ArrayList<>();
 
                 while ((line = bufferedReader.readLine()) != null){
                     countStrings++;
@@ -95,7 +88,6 @@ public class Main {
                             }
                             index = end+1;
                     }
-
                 }
                 System.out.println("Общее количество строк: " + countStrings);
                 //System.out.println(googleBots);
@@ -104,13 +96,22 @@ public class Main {
                 //System.out.println(yandexBots);
                 System.out.println("Доля запросов Яндекс-ботов: " + (double)yandexBots/countStrings);
                 System.out.println("Средний траффик за час: " + stats.getTrafficRate());
+                //System.out.println("Существующие сайты: "+ stats.getWebSites());
+                //System.out.println("Несуществующие сайты: "+ stats.getUnexistingWebSites());
+                System.out.println("Доли ОС : " + stats.getOsFraction());
+                System.out.println("Доли браузеров : " + stats.getBrowserFraction());
+                System.out.println("Среднее количество посещений за час (не боты): " + stats.getAverageVisitation());
+                System.out.println("Среднее количество ошибочных запросов за час: " + stats.getAverageMistakesPerHour());
+                System.out.println("Среднее количество посещений одним пользователем: " + stats.getAverageVisitsByIP());
+                System.out.println("Трафик за час: " + stats.getTrafficRate());
+                System.out.println("Максимальное посещение по секундам: " + stats.getMaxVisitsPerSeconds());
+                System.out.println("Максимальное посещение одним пользователем : " + stats.getMaxVisitByUser());
+
                 break;
             }catch (Exception ex) {
                 ex.printStackTrace();
             }
-
         }
-
     }
 }
 

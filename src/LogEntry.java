@@ -65,7 +65,8 @@ public class LogEntry {
 
     @Override
     public String toString() {
-        return "LogEntry{" + "ip=" + ip + " ||, dateTime=" + dateTime + " ||, method=" + method + " ||, url=" + url + " ||, response=" + response + " ||,responseSize=" + responseSize + " ||, referer=" + referer + " !!!, userAgent=" + userAgent + '}';
+        return "LogEntry{" + "ip=" + ip + " ||, dateTime=" + dateTime + " ||, method=" + method + " ||, url=" + url + " ||, response=" +
+                response + " ||,responseSize=" + responseSize + " ||, referer=" + referer + " !!!, userAgent=" + userAgent + '}';
     }
 }
 

@@ -1,3 +1,4 @@
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -16,7 +17,9 @@ public class Statistics {
     int notBotVisits;
     int mistakeRequests;
     HashSet<String> nonBotIPs = new HashSet<>();
-
+    HashMap<Integer,Integer> visitsPerSecond = new HashMap<>();
+    HashSet<String> domains = new HashSet<>();
+    HashMap<String, Integer> visitsPerUser = new HashMap<>();
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
 
@@ -25,7 +28,6 @@ public class Statistics {
         this.minTime = null;
         this.maxTime = null;
         this.notBotVisits = 0;
-
     }
 
     private long getHours(){
@@ -33,6 +35,28 @@ public class Statistics {
             return 0;
         }
         return java.time.Duration.between(minTime,maxTime).toHours();
+    }
+
+    public HashSet<String> getDomains() {
+        return domains;
+    }
+
+    //максимальное число запросов в секунду
+    public int getMaxVisitsPerSeconds(){
+        int max = 0;
+        for (int value : visitsPerSecond.values()){
+            if(value > max){
+                max = value;
+            }
+        }
+        return max;
+    }
+
+    public int getMaxVisitByUser(){
+        if(visitsPerUser.isEmpty()){
+            return 0;
+        }
+        return visitsPerUser.values().stream().max(Integer::compareTo).get();
     }
 
     public double getAverageMistakesPerHour(){
@@ -45,7 +69,6 @@ public class Statistics {
     }
 
     public double getAverageVisitation(){
-
         long hours = getHours();
         if(hours == 0){
             return notBotVisits;
@@ -70,12 +93,6 @@ public class Statistics {
             unexistingWebSites.add(entry.getUrl());
         }
 
-        UserAgent userAgent = entry.getUserAgent();
-        if (!userAgent.isBot()){
-            notBotVisits++;
-            nonBotIPs.add(entry.getIp());
-        }
-
         OffsetDateTime offsetDateTime = OffsetDateTime.parse(entry.getDateTime(), formatter);
         LocalDateTime time = offsetDateTime.toLocalDateTime();
         if(minTime == null || time.isBefore(minTime)){
@@ -85,11 +102,39 @@ public class Statistics {
             maxTime = time;
         }
 
+        UserAgent userAgent = entry.getUserAgent();
+        if (!userAgent.isBot()){
+            notBotVisits++;
+            nonBotIPs.add(entry.getIp());
+            //dlya добавления записей в visitsPerSecond
+            int second = (int) Duration.between(minTime, time).getSeconds();
+            visitsPerSecond.merge(second, 1, Integer::sum);
+            //
+            visitsPerUser.merge(entry.getIp(), 1, Integer::sum);
+        }
+
         String OS = entry.getUserAgent().getOS();
         if(!osFrequencies.containsKey(OS)){
             osFrequencies.put(OS, 1);
         }else {
             osFrequencies.put(OS,osFrequencies.get(OS) + 1);
+        }
+
+        //домены
+        String referer = entry.getReferer();
+        if(referer != null && !referer.isEmpty() && !"-".equals(referer)){
+            int schemeEnd = referer.indexOf("://");
+            if(schemeEnd != -1) {
+                int domainStart = schemeEnd + 3;
+                int slash = referer.indexOf('/', domainStart);
+                String domain;
+                if(slash != -1){
+                    domain = referer.substring(domainStart, slash);
+                }else{
+                    domain = referer.substring(domainStart);
+                }
+                domains.add(domain);
+            }
         }
 
         String browser = entry.getUserAgent().getBrowser();
